@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="We enhance motion magnification in videos through differentiation via optical flow, thereby enabling the implementation of a self-supervised magnification algorithm.">
+  <meta name="keywords" content="Video Processing, Motion Processing, Motion Magnification, Optical Flow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Self-Supervised Motion Magnification by Backpropagating Through Optical Flow</title>
+
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.ico">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+  <script src="./static/js/boomerang.js"></script>
+  <script type="text/javascript" id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+</nav>
+
+
+<!-- Authors and links -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">Self-Supervised Motion Magnification by Backpropagating Through Optical Flow</h1>
+          
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Thirty-seventh Conference on Neural Information Processing Systems (NeurIPS), 2023.</span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://zhaoyingpan.github.io/">Zhaoying Pan</a><sup>*</sup>,</span>
+            <span class="author-block">
+              <a href="https://dangeng.github.io/">Daniel Geng</a><sup>*</sup>,</span>
+            <span class="author-block">
+              <a href="https://andrewowens.com/">Andrew Owens</a>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">University of Michigan</span>
+          </div>
+          <div class="is-size-6 publication-authors">
+            <span class="author-block"><sup>*</sup>Denotes Equal Contributions.</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- arXiv Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Video Link. -->
+              <span class="link-block">
+                <a href="https://youtu.be/ik_zVqMrJh8"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/dangeng/flowmag"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                </a>
+              </span>
+              <!-- Colab Link. -->
+              <span class="link-block">
+                <a href="https://colab.research.google.com/drive/1NHpmRfm__El5aQvaNBw2APYd6ju7tby0?usp=sharing"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Colab</span>
+                </a>
+              </span>
+              <!-- Poster Link. -->
+              <span class="link-block">
+                <a href="https://drive.google.com/"
+                   class="external-link button is-normal is-rounded is-light">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Poster (Coming Soon)</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ Authors and links -->
+
+
+<!-- SAM video. -->
+<section class="section" style="margin: -50px;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-five-fifths">
+        <video poster="./static/thumbnails/twocats_masked_tta_2_thumbnail.jpg" id="video" autoplay controls muted loop playsinline height="100%" align="center">
+          <source src="./static/videos/twocats_masked_tta_2.mp4"
+                  type="video/mp4">
+        </video>
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-five-fifths">
+            <div class="content has-text-justified">
+              <h2 class="title is-6" align="center">Source: <a href="#ref-cats" style="color:#3273dc">[1]</a></h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ SAM video. -->
+
+<!-- TLDR -->
+<section class="section" style="margin: -50px;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">TL;DR</h2>
+        <div class="content has-text-justified">
+          <p>
+          We magnify subtle motions that can be trained <em>without</em> ground truth 
+            magnified videos. Our method also allows users to "target" the magnification, only magnifying specific 
+            regions or objects. Since our method is self-supervised, we can finetune the model at test time to improve its peformance.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ TLDR -->
+
+
+<!-- Videos. -->
+<section class="section">
+  <div class="hero-body">
+    <div class="container">
+      
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-three-fifths">
+          <video preload="none" poster="./static/thumbnails/tuningforks_thumbnail.jpg" id="tuningforks" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/tuningforks.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-tuningforks" style="color:#3273dc">[2]</a></h2>
+              </div>
+            </div>
+          </div>
+
+          <video preload="none" poster="./static/thumbnails/drum_shortened_x5_thumbnail.jpg" id="drum" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/drum_shortened_x5.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-column-drum" style="color:#3273dc">[4]</a></h2>
+              </div>
+            </div>
+          </div>
+
+          <video preload="none" poster="./static/thumbnails/butterfly_x5_thumbnail.jpg" id="butterfly" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/butterfly.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-vos" style="color:#3273dc">[3]</a></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="results-carousel" class="carousel results-carousel2" align="center">          
+        
+        <div class="item item-twocats">
+          <video preload="none" poster="./static/thumbnails/twocats_thumbnail.jpg" id="twocats" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/twocats.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-cats" style="color:#3273dc">[1]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-pole">
+          <video preload="none" poster="./static/thumbnails/pole_rotated_thumbnail.png" id="pole" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/pole_rotated.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-column-drum" style="color:#3273dc">[4]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-flower">
+          <video preload="none" poster="./static/thumbnails/flower_thumbnail.jpg" id="flower" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/flower.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-nivr" style="color:#3273dc">[6]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-chair-baby">
+          <video preload="none" poster="./static/thumbnails/baby_thumbnail.jpg" id="chair-baby" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/baby.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-phase" style="color:#3273dc">[5]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-stomp">
+          <video preload="none" poster="./static/thumbnails/stomp_thumbnail.jpg" id="stomp" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/stomp.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-phase" style="color:#3273dc">[5]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-belly">
+          <video preload="none" poster="./static/thumbnails/belly_thumbnail.jpg" id="belly" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/belly.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-phase" style="color:#3273dc">[5]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-candle">
+          <video preload="none" poster="./static/thumbnails/candle_thumbnail.jpg" id="candle" autoplay controls muted loop playsinline style="height: 400px;">
+            <source src="./static/videos/candle.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-candle" style="color:#3273dc">[10]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ Videos. -->
+
+
+<!-- Overview. -->
+<section class="section" style="margin: -50px;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Approach Overview</h2>
+        <div class="content has-text-justified">
+          <img src="./static/images/overview.png" alt="Overview">
+          <p>
+            Given a reference frame \(I_0\), a frame to be magnified \(I_t\), 
+            and a map of per-pixel magnification factors \(\alpha\), we predict 
+            a magnified frame \(\tilde{I}_t\). We minimize two losses that each 
+            use an off-the-shelf optical flow estimator \(\mathcal{F}(\cdot, \cdot)\). 
+            First, we use a magnification loss \(\mathcal{L}_{\text{mag}}\) that 
+            encourages the optical flow of the generated video to be \(\alpha\) times 
+            as large as that of the input video. And second, we also include a 
+            consistency loss \(\mathcal{L}_{\text{color}}\) that measures the 
+            visual similarity of corresponding pixels in \(I_t\) and \(\tilde{I}_t\).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ Overview. -->
+
+
+
+<!-- Flexibility. -->
+<section class="section" style="margin: -50px;">
+  <!-- Targeted magnification. -->
+  <div class="container is-max-desktop">
+    <h2 class="title is-3" align="center">Targeted Magnification</h2>
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <div class="content has-text-justified">
+          <p>
+            Our model gives us the ability to vary the magnification factor spatially 
+            within an image. We achieve this by providing different values of \(\alpha\) 
+            for each pixel at inference time. This ability is useful when we want to focus 
+            on a specific object or when we want to ignore an object that may be challenging 
+            to magnify.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div id="targeted" class="carousel results-carousel2" align="center">
+        <div class="item item-tuningforks-masked">
+          <video preload="none" poster="./static/thumbnails/tuningforks_masked_thumbnail.jpg" id="tuningforks-masked" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/tuningforks_masked.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-tuningforks" style="color:#3273dc">[2]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="item item-train1-masked">
+          <video preload="none" poster="./static/thumbnails/train1_masked_shortened_thumbnail.jpg" id="train1-masked" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/train1_masked_shortened.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-train1" style="color:#3273dc">[11]</a>, starting from frame 300.</h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-hammerhit-masked">
+          <video preload="none" poster="./static/thumbnails/hammerhit_masked_thumbnail.jpg" id="hammerhit-masked" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/hammerhit_masked.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-phase" style="color:#3273dc">[5]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <div class="item item-twocats-masked">
+          <video preload="none" poster="./static/thumbnails/twocats_masked_thumbnail.jpg" id="twocats-masked" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/twocats_masked.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-cats" style="color:#3273dc">[1]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <!--/ Targeted magnification. -->
+</section>
+  
+<section class="section" style="margin: -50px;">
+  <!-- Test time adaptation. -->
+  <div class="container is-max-desktop">
+
+    <h2 class="title is-3" align="center">Test-Time Adaptation</h2>
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <div class="content has-text-justified">
+          <p>
+            Since our model is entirely self-supervised, we can finetune it at inference time 
+            on the input video. This allows us to adapt to new motions and content.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div id="tta" class="carousel results-carousel2" align="center">
+        <div class="item item-twocats-tta">
+          <video preload="none" poster="./static/thumbnails/twocats_tta_thumbnail.jpg" id="twocats-tta" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/twocats_tta.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-cats" style="color:#3273dc">[1]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-baby-tta">
+          <video preload="none" poster="./static/thumbnails/baby_tta_thumbnail.jpg" id="baby-tta" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/baby_tta.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-phase" style="color:#3273dc">[5]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-pole-tta">
+          <video preload="none" poster="./static/thumbnails/pole_rotated_tta_thumbnail.jpg" id="pole-tta" transform="rotate(90deg)" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/pole_rotated_tta.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-column-drum" style="color:#3273dc">[4]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <!--/ Test time adaptation. -->
+</section>
+<!--/ Flexibility. -->
+
+
+
+<!-- Applications. -->
+<section class="section" style="margin: -50px;">
+  <div class="container is-max-desktop">
+
+  <h2 class="title is-3" align="center">Future Applications</h2>
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <div class="content has-text-justified">
+          <p>
+            Motion magnification has the potential to allow researchers to visualize subtle physical motions
+            in the real world for practical applications, such as vibration analysis, machine inspection, or 
+            material deformation.
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="container">
+      <div id="application" class="carousel results-carousel2" align="center" width="80%" height="80%">
+
+        <div class="item item-hammer">
+          <video preload="none" poster="./static/thumbnails/boiler_thumbnail.jpg" id="boiler" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/boiler_shortened.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-boiler" style="color:#3273dc">[8]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-engine2">
+          <video preload="none" poster="./static/thumbnails/engine2_thumbnail.jpg" id="engine2" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/engine2.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-engine" style="color:#3273dc">[9]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-train3">
+          <video preload="none" poster="./static/thumbnails/brain_masked_thumbnail.jpg" id="train3" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/brain_masked.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-brain" style="color:#3273dc">[7]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ Applications. -->
+
+
+<!-- Video. -->
+<section class="section" style="margin: -50px;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Video Explanation</h2>
+        <div class="publication-video">
+          <iframe src="https://www.youtube.com/embed/ik_zVqMrJh8?si=pEGycMbvHSE4GVfZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ Video. -->
+
+
+<!-- Comparison. -->
+<section class="section" style="margin: -50px;">
+  <h2 class="title is-3" align="center">Comparison with Oh <em>et al.</em> <a href="https://people.csail.mit.edu/tiam/deepmag/">[3]</a></h2>
+  <div class="container is-max-desktop">
+      <div id="application" class="carousel results-carousel2" align="center" width="80%" height="80%">
+
+
+        <div class="item item-twocats-comp">
+          <video preload="none" poster="./static/thumbnails/twocats_x20_dm_comp_thumbnail.jpg" id="twocats-comp" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/twocats_x20_dm_comp.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-cats" style="color:#3273dc">[1]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-butterfly-comp">
+          <video preload="none" poster="./static/thumbnails/butterfly_x5_dm_comp_thumbnail.jpg" id="butterfly-comp" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/butterfly_x5_dm_comp.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-vos" style="color:#3273dc">[3]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="item item-boiler-comp">
+          <video preload="none" poster="./static/thumbnails/boiler_x30_dm_comp_thumbnail.jpg" id="bioler-comp" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/boiler_x30_dm_comp.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-boiler" style="color:#3273dc">[8]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-camel-comp">
+          <video preload="none" poster="./static/thumbnails/camel_x20_dm_comp_thumbnail.jpg" id="camel-comp" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/camel_x20_dm_comp.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-nivr" style="color:#3273dc">[6]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-train1-comp">
+          <video preload="none" poster="./static/thumbnails/train1_resized_x20_dm_comp_shortened_thumbnail.jpg" id="train1-comp" controls muted loop playsinline height="100%">
+            <source src="./static/videos/train1_resized_x20_dm_comp_shortened.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-train1" style="color:#3273dc">[11]</a>, starting from frame 300.</h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
+<!--/ Comparison. -->
+
+
+
+<!-- Failure. -->
+<section class="section" style="margin: -50px;">
+  <div class="container is-max-desktop">
+
+  <h2 class="title is-3" align="center">Failure Cases</h2>
+  
+  <div class="columns is-centered has-text-centered">
+    <div class="column is-four-fifths">
+      <div class="content has-text-justified">
+        <p>
+          While our method demonstrates favorable performance in most videos, there are cases 
+          where it falls short. One particular failure mode occurs when a video contains thin 
+          structures such as tree branches and guitar strings. Another common failure is incorrectly magnifying background 
+          that has zero flow. This happens when small errors from the optical flow model are magnified, 
+          as shown in the camera sequence. 
+        </p>
+      </div>
+    </div>
+  </div>
+    <div class="container">
+      <div id="application" class="carousel results-carousel2" align="center" width="80%" height="80%">
+
+        <div class="item item-guitar2-failure">
+          <video preload="none" poster="./static/thumbnails/failure_camera_x75_thumbnail.jpg" id="camera-failure" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/failure_camera_x75.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-phase" style="color:#3273dc">[5]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-flower-failure">
+          <video preload="none" poster="./static/thumbnails/failure_flower_x20_dm_comp_thumbnail.jpg" id="flower-failure" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/failure_flower_x20_dm_comp.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-nivr" style="color:#3273dc">[6]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item item-guitar2-failure">
+          <video preload="none" poster="./static/thumbnails/failure_guitar_x25_dm_comp_thumbnail.jpg" id="guitar2-failure" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/failure_guitar_x25_dm_comp.mp4"
+                    type="video/mp4">
+          </video>
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-five-fifths">
+              <div class="content has-text-justified">
+                <h2 class="title is-6" align="center">Source: <a href="#ref-phase" style="color:#3273dc">[5]</a></h2>
+                <h2 class="title is-6" align="center"></h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ Failure. -->
+
+
+<!-- Related links. -->
+<section class="section" style="margin: -50px;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Related Work</h2>
+        <div class="content has-text-justified">
+          <p>
+            There's a lot of excellent work that is relevant to our paper.
+          </p>
+          <p>
+            The optimal approach to framing motion magnification remains an open question. While our technique 
+            focuses on training without ground truth videos, there are also well-established Eulerian methods 
+            and supervised learning-based approaches 
+            (See more information at <a href="https://people.csail.mit.edu/mrub/evm/">1</a>, 
+            <a href="https://people.csail.mit.edu/nwadhwa/phase-video/">2</a>, and <a href="https://people.csail.mit.edu/tiam/deepmag/">3</a>).
+            Check out this <a href="https://people.csail.mit.edu/mrub/vidmag/">website</a> for an excellent
+            collection of work on motion magnification.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ Related links. -->
+
+
+<!-- Video Sources. -->
+<section class="section" style="margin: -50px;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Video Sources</h2>
+        <div class="content has-text-justified">
+          <p id="ref-cats">
+            [1] Totally Normal. <a href="https://www.youtube.com/watch?v=T4U6JKT-c0c">"12 hours of cats sleeping."</a> <em>YouTube</em> video, 2018.
+          </p>
+          <p id="ref-tuningforks">
+            [2] Feng, Brandon Y., et al. "3D Motion Magnification: Visualizing Subtle Motions from Time-Varying Radiance Fields." Proceedings of the IEEE/CVF International Conference on Computer Vision. 2023.
+          </p>
+          <p id="ref-vos">
+            [3] Linjie Yang et al. <em>"The 2nd Large-scale Video Object Segmentation Challenge - video object segmentation track."</em>
+          </p>
+          <p id="ref-column-drum">
+            [4] Wadhwa, Neal, et al. "Riesz pyramids for fast phase-based video magnification." 2014 IEEE International Conference on Computational Photography (ICCP). IEEE, 2014.
+          </p>
+          <p id="ref-phase">
+            [5] Wadhwa, Neal, et al. "Phase-based video motion processing." ACM Transactions on Graphics (ToG) 32.4 (2013): 1-10.
+          </p>
+          <p id="ref-nivr">
+            [6] Mai, Long, and Feng Liu. "Motion-adjustable neural implicit video representation." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2022.
+          </p>
+          <p id="ref-brain">
+            [7] Terem, Itamar, et al. "Revealing sub‐voxel motions of brain tissue using phase‐based amplified MRI (aMRI)." Magnetic resonance in medicine 80.6 (2018): 2549-2559.
+          </p>
+          <p id="ref-boiler">
+            [8] Vibration, dynamics and noise. <a href="https://youtu.be/PhESmDSunC0?list=LL&t=38">"Motion amplification camera examples."</a> <em>YouTube</em> video, 2018.
+          </p>
+          <p id="ref-engine">
+            [9] RDI Technologies. <a href="https://www.youtube.com/watch?v=ZxOSGhsuqz0&list=WL&index=2">"Motion Amplification of an engine starting."</a> <em>YouTube</em> video, 2016.
+          </p>
+          <p id="ref-candle">
+            [10] Xue, Tianfan, et al. "Refraction wiggles for measuring fluid depth and velocity from video." Computer Vision–ECCV 2014: 13th European Conference, Zurich, Switzerland, September 6-12, 2014, Proceedings, Part III 13. Springer International Publishing, 2014.
+          </p>
+          <p id="ref-train1">
+            [11] Samed Gojak. <a href="https://www.pexels.com/video/an-electric-train-passing-by-12955565/">"An Electric Train Passing by."</a> <em>Pexels</em> video, 2022.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ Video Sources. -->
+
+
+<!-- BibTeX. -->
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <div class="columns is-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title" align="center">BibTeX</h2>
+    <pre><code>@inproceedings{pan2023selfsupervised,
+  title={Self-Supervised Motion Magnification by Backpropagating Through Optical Flow},
+  author={Zhaoying Pan and Daniel Geng and Andrew Owens},
+  booktitle={Thirty-seventh Conference on Neural Information Processing Systems},
+  year={2023},
+  url={https://openreview.net/forum?id=hLPJ7xLbNF}
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ BibTeX. -->
+
+
+<!-- Footnote. -->
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            The website template comes from <a
+            href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+<!--/ Footnote. -->
+
+</body>
+</html>
