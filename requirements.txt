@@ -1,0 +1,14 @@
+configobj==5.0.8
+easydict==1.10.0
+einops==0.4.1
+gdown==4.7.1
+matplotlib==3.3.4
+numpy==1.21.6
+omegaconf==2.3.0
+opencv-python==4.6.0.66
+Pillow==8.4.0
+scipy==1.5.4
+torch==1.7.0
+torchvision==0.8.1
+tqdm==4.64.0
+tensorboard==2.11.2

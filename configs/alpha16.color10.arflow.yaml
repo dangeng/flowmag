@@ -1,0 +1,34 @@
+name: alpha16.color10.arflow
+data:
+  num_frames: 2
+  batch_size: 40
+  num_workers: 16
+  sample_mode: random
+  dataroot: ./data/flowmag
+  repeat_factor: 1
+  aug: True
+  im_size: 512
+  dataset: flowmag
+train:
+  is_training: True
+  lr: 3e-4
+  num_epochs: 10000
+  ngpus: 4
+  resume: ''
+  weight_mag: 1.0
+  weight_color: 10.0
+  flow_model: arflow
+  alpha_low: 1.0
+  alpha_high: 16.0
+model:
+  num_layers: 5
+  ndf: 64
+  pos_dim: 32
+log:
+  log_dir: ./results
+  print_freq: 20
+  save_freq: 5
+  val_freq: 1
+  inference_freq: 1000000000
+  inference_dir: ./data/twocats
+  reset_epoch: False
