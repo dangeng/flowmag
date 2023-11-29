@@ -1,6 +1,6 @@
 # [WEBSITE] Self-Supervised Motion Magnification by Backpropagating Through Optical Flow
 
-This branch contains source code for our [website](https://github.com/dangeng/flowmag). If you are looking for the code for "Self-Supervised Motion Magnification by Backpropagating Through Optical Flow" please switch to the "main" branch.
+This branch contains source code for our [website](https://dangeng.github.io/flowmag/). If you are looking for the code for "Self-Supervised Motion Magnification by Backpropagating Through Optical Flow" please switch to the "main" branch.
 
 If you find our work useful for your work please cite:
 ```
