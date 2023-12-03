@@ -76,7 +76,7 @@ def dist_transform(mask):
     # get closest in south east
     def closest_se(mask):
         closest = torch.ones(mask.shape) * float('inf')
-        for i in tqdm(range(1, h)):
+        for i in range(1, h):
             for j in range(1, w):
                 if mask[i,j] == 1:
                     closest[i, j] = 0
