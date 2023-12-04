@@ -90,8 +90,10 @@ We collected a dataset containing 145k unlabeled frame pairs from several public
 including Youtube-VOS-2019, DAVIS, Vimeo-90k, Tracking Any Object (TAO), and Unidentified 
 Video Objects (UVO). The code for data collection will be updated in this repo soon. The 
 collected dataset has a size of ~80GB, and you should be able to re-generate the same dataset 
-with the scripts. Put the generated dataset in this path `./data/flowmag`, or modify the 
-`dataroot` in the config file to your dataset root.
+with the scripts. Here we provide the zip file of [test data](https://drive.google.com/file/d/1e9KljPpIHB5Yq8r2-XcHLEHlym6n1H5C/view?usp=sharing), containing a folder of images 
+named `test` and a json file of image filenames named `test_fn.json`. The generated dataset 
+should contain `train`, `train_fn.json`, `test`, `test_fn.json`. Put the generated dataset 
+in this path `./data/flowmag`, or modify the `dataroot` in the config file to your dataset root.
 
 We provide original videos used in our experiments at the [Google Drive folder](https://drive.google.com/drive/folders/12kidhGIosh_8MJpXnCTiY1w4uJCcqwyG?usp=sharing). 
 During inference, our model takes a folder of image files of video frames. To convert the mp4 file
