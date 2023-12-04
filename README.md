@@ -7,7 +7,7 @@
 #### [[arXiv]](https://arxiv.org/abs/2311.17056) | [[Video]](https://www.youtube.com/watch?v=ik_zVqMrJh8) | [[Website]](https://dangeng.github.io/flowmag)
 
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1NHpmRfm__El5aQvaNBw2APYd6ju7tby0?usp=sharing)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1TmD1SGFlxtodDGWzYLjAiDBvRod2u7eZ?usp=sharing)
 
 ## Table of contents
 - [Introduction](#introduction)
@@ -32,7 +32,7 @@ We present a simple, self-supervised method for magnifying subtle motions in vid
 
 ## Colab notebook
 
-Try our method in this [colab notebook](https://colab.research.google.com/drive/1NHpmRfm__El5aQvaNBw2APYd6ju7tby0?usp=sharing). We provide <i>Butterfly</i> and <i>Cats</i> sequences as examples for magnification with/without targeting respectively. This colab notebook supports uploading videos for magnification with/without targeting as well. By plotting bounding box with the widget, a mask can be generated with Segment Anything Model and applied for magnification.
+Try our method in this [colab notebook](https://colab.research.google.com/drive/1TmD1SGFlxtodDGWzYLjAiDBvRod2u7eZ?usp=sharing). We provide <i>Butterfly</i> and <i>Cats</i> sequences as examples for magnification with/without targeting respectively. This colab notebook supports uploading videos for magnification with/without targeting as well. By plotting bounding box with the widget, a mask can be generated with Segment Anything Model and applied for magnification.
 
 ## Installation
 
