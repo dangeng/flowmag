@@ -4,7 +4,7 @@ data:
   batch_size: 40
   num_workers: 16
   sample_mode: random
-  dataroot: ./data/flowmag
+  dataroot: ./data/flowmag_data
   repeat_factor: 1
   aug: True
   im_size: 512

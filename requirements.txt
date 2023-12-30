@@ -1,4 +1,5 @@
 configobj==5.0.8
+dominate==2.7.0
 easydict==1.10.0
 einops==0.4.1
 gdown==4.7.1
