@@ -22,7 +22,7 @@
     - [Test-time adaptation](#test-time-adaptation)
     - [Evaluation](#evaluation)
 - [Citation](#citation)
-- [Acknowledgement](#acknowledgement)
+- [Acknowledgements](#acknowledgements)
 
 ## Introduction
 
