@@ -14,6 +14,31 @@ parser.add_argument('--data_root', type=str, help='root folder to save data')
 args = parser.parse_args()
 data_root = args.data_root
 
+def collect_trainset_from_json(json_path, save_root):
+    with open(json_path, 'r') as f:
+        included_info = json.load(f)
+    
+    split = 'train'
+
+    # create dataset folder
+    if not os.path.exists(save_root):
+        os.makedirs(save_root)
+    
+    # delete the folder of split (if any) and create new folders
+    if os.path.exists(os.path.join(save_root, split)):
+        shutil.rmtree(os.path.join(save_root, split))
+    
+    os.makedirs(os.path.join(save_root, split))
+    os.makedirs(os.path.join(save_root, split, 'frameA'))
+    os.makedirs(os.path.join(save_root, split, 'frameB'))
+
+    for fn, info in included_info.items():
+        image_fn = '{}.png'.format(fn)
+        shutil.copy(get_absolute_path(info['paths'][0], data_root), os.path.join(save_root, split, 'frameA', image_fn))
+        shutil.copy(get_absolute_path(info['paths'][1], data_root), os.path.join(save_root, split, 'frameB', image_fn))
+
+
+
 def generate_trainset(info_path_dict, save_root, threshold_dict, mse_threshold):
     split = 'train'
 

@@ -88,9 +88,16 @@ The magnified video will be saved to `./inference/example/x20.mp4`.
 
 We collected a dataset containing 145k unlabeled frame pairs from several public datasets, 
 including Youtube-VOS-2019, DAVIS, Vimeo-90k, Tracking Any Object (TAO), and Unidentified 
-Video Objects (UVO). The code for data collection will be updated in this repo soon. The 
-collected dataset has a size of ~80GB, and you should be able to re-generate the same dataset 
-with `sh scripts/prepare_data.sh` (may modify the root directory in it to avoid insufficient space). We provide 
+Video Objects (UVO). The collected dataset has a size of ~80GB, and you should be able to re-generate
+the same dataset with `sh scripts/prepare_data.sh` (may modify the root directory in it to avoid insufficient space). 
+
+We provide the file containing the information of our filtered frames for train set, named [train_included.json](https://drive.google.com/file/d/1-3zWkw6IOmc9JysL-G7und0cM-sDXt7P/view?usp=sharing).
+If you prefer reproducing the train set with our thresholds, you might download the five datasets, process UVO (save as frames), and
+collect frame pairs with this file and `collect_trainset_from_json()` in `scripts/collect_subsets.py`.
+
+If you prefer generating data with different thresholds, you might modify the values for thresholds in `scripts/collect_subsets.py`.
+
+We provide 
 the zip file of [test data](https://drive.google.com/file/d/1e9KljPpIHB5Yq8r2-XcHLEHlym6n1H5C/view?usp=sharing), 
 containing a folder of images named `test` and a json file of image filenames named `test_fn.json`. The generated dataset 
 should contain the following folder structure:
