@@ -263,7 +263,7 @@ If you found this code useful please consider citing our [paper](https://arxiv.o
   author={Zhaoying Pan and Daniel Geng and Andrew Owens},
   booktitle={Thirty-seventh Conference on Neural Information Processing Systems},
   year={2023},
-  url={https://openreview.net/forum?id=hLPJ7xLbNF}
+  url={https://arxiv.org/abs/2311.17056}
 }
 ```
 
